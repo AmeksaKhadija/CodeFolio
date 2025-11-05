@@ -8,8 +8,14 @@ export const typeDefs = gql`
   }
 
   type AuthPayload {
-    token: String!
+    token: String! # Compatibilité - retourne l'accessToken
+    accessToken: String!
+    refreshToken: String!
     user: User!
+  }
+
+  type RefreshPayload {
+    accessToken: String!
   }
 
   type ReseauxSociaux {
@@ -137,6 +143,7 @@ export const typeDefs = gql`
   type Mutation {
     # Authentification
     login(username: String!, password: String!): AuthPayload!
+    refreshToken(refreshToken: String!): RefreshPayload!
 
     # Profil (Admin)
     updateProfil(input: ProfilInput!): Profil!

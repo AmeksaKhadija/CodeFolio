@@ -4,7 +4,7 @@ import Profil from "../../models/Profil";
 import Projet from "../../models/Projet";
 import Competence from "../../models/Competence";
 import Experience from "../../models/Experience";
-import { generateToken } from "../../utils/jwt";
+import { generateTokenPair, verifyRefreshToken, generateAccessToken } from "../../utils/jwt";
 import { authenticate, Context } from "../../middleware/auth";
 
 export const resolvers = {
@@ -73,20 +73,50 @@ export const resolvers = {
         throw new AuthenticationError("Identifiants invalides");
       }
 
-      const token = generateToken({
+      const tokens = generateTokenPair({
         userId: user.id,
         username: user.username,
         role: user.role,
       });
 
       return {
-        token,
+        token: tokens.accessToken, // Compatibilité
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
         user: {
           id: user.id,
           username: user.username,
           role: user.role,
         },
       };
+    },
+
+    refreshToken: async (
+      _: any,
+      { refreshToken }: { refreshToken: string }
+    ) => {
+      try {
+        const decoded = verifyRefreshToken(refreshToken);
+        
+        // Vérifier que l'utilisateur existe toujours
+        const user = await User.findById(decoded.userId);
+        if (!user) {
+          throw new AuthenticationError("Utilisateur non trouvé");
+        }
+
+        // Générer un nouveau access token
+        const newAccessToken = generateAccessToken({
+          userId: user.id,
+          username: user.username,
+          role: user.role,
+        });
+
+        return {
+          accessToken: newAccessToken,
+        };
+      } catch (error) {
+        throw new AuthenticationError("Refresh token invalide");
+      }
     },
 
     // ========== PROFIL (ADMIN) ==========
