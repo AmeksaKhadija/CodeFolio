@@ -4,7 +4,11 @@ import Profil from "../../models/Profil";
 import Projet from "../../models/Projet";
 import Competence from "../../models/Competence";
 import Experience from "../../models/Experience";
-import { generateTokenPair, verifyRefreshToken, generateAccessToken } from "../../utils/jwt";
+import {
+  generateTokenPair,
+  verifyRefreshToken,
+  generateAccessToken,
+} from "../../utils/jwt";
 import { authenticate, Context } from "../../middleware/auth";
 
 export const resolvers = {
@@ -59,7 +63,11 @@ export const resolvers = {
     // ========== AUTHENTIFICATION ==========
     login: async (
       _: any,
-      { username, password }: { username: string; password: string }
+      {
+        username,
+        email,
+        password,
+      }: { username: string; email: string; password: string }
     ) => {
       const user = await User.findOne({ username });
 
@@ -71,6 +79,15 @@ export const resolvers = {
 
       if (!isValidPassword) {
         throw new AuthenticationError("Identifiants invalides");
+      }
+
+      // Enregistrer / mettre à jour l'email si fourni et différent
+      if (
+        email &&
+        (!user.email || user.email.toLowerCase() !== email.toLowerCase())
+      ) {
+        user.email = email.toLowerCase();
+        await user.save();
       }
 
       const tokens = generateTokenPair({
@@ -86,6 +103,7 @@ export const resolvers = {
         user: {
           id: user.id,
           username: user.username,
+          email: user.email,
           role: user.role,
         },
       };
@@ -97,7 +115,7 @@ export const resolvers = {
     ) => {
       try {
         const decoded = verifyRefreshToken(refreshToken);
-        
+
         // Vérifier que l'utilisateur existe toujours
         const user = await User.findById(decoded.userId);
         if (!user) {

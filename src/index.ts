@@ -15,7 +15,21 @@ const startServer = async () => {
   const app = express();
 
   app.use(cors());
+  // app.use(
+  //   cors({
+  //     origin: "http://localhost:3000",
+  //     credentials: true,
+  //     allowedHeaders: ["Content-Type", "Authorization"],
+  //     methods: ["GET", "POST", "OPTIONS"],
+  //   })
+  // );
+  // // Enable preflight for all routes
+  // app.options("*", cors());
+
   app.use(express.json());
+
+  // Health check route
+  app.get("/", (_req, res) => res.send("OK"));
 
   const server = new ApolloServer({
     typeDefs,

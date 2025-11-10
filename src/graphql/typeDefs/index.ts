@@ -4,6 +4,7 @@ export const typeDefs = gql`
   type User {
     id: ID!
     username: String!
+    email: String
     role: String!
   }
 
@@ -142,7 +143,7 @@ export const typeDefs = gql`
   # Mutations
   type Mutation {
     # Authentification
-    login(username: String!, password: String!): AuthPayload!
+    login(username: String!, email: String!, password: String!): AuthPayload!
     refreshToken(refreshToken: String!): RefreshPayload!
 
     # Profil (Admin)
